@@ -1,0 +1,18 @@
+FROM node:24-slim
+
+WORKDIR /opt/microservices
+
+COPY bookinfo/src/ratings/ .
+
+ENV APP_VERSION=v1
+
+RUN npm install --omit=dev
+
+ENV SERVICES_DOMAIN=""
+ENV DETAILS_HOSTNAME="details"
+ENV RATINGS_HOSTNAME="ratings" 
+ENV REVIEWS_HOSTNAME="reviews"
+ENV TEAM_ID="29"
+EXPOSE 9080
+
+CMD ["node", "ratings.js", "9080"]
