@@ -1,171 +1,168 @@
 #!/usr/bin/env python3
-"""
-Script para probar microservicios
-"""
-
-import os
-import time
 import subprocess
+import os
 import sys
+import time
 
-def check_docker_compose():
-    """Verifica si docker-compose está instalado"""
-    try:
-        result = subprocess.run("docker-compose --version", 
-                              shell=True, capture_output=True, text=True)
-        if result.returncode == 0:
-            print(f"docker-compose: {result.stdout.strip()}")
-            return True
-        else:
-            print("docker-compose no encontrado")
-            return False
-    except:
-        return False
+def construir():
+    print("Construyendo todo...")
+    print("-" * 40)
+    
+    print("1. Instalando Docker...")
+    subprocess.run("sudo apt-get update -y", shell=True)
+    subprocess.run("sudo apt install -y docker.io docker-compose", shell=True)
+    subprocess.run("sudo systemctl enable docker", shell=True)
+    subprocess.run("sudo systemctl restart docker", shell=True)
+    
+    print("\n2. Construyendo reviews...")
+    os.chdir("bookinfo/src/reviews")
+    pwd = os.getcwd()
+    subprocess.run(
+        f"docker run --rm -u root -v {pwd}:/home/gradle/project -w /home/gradle/project gradle:4.8.1 gradle clean build", 
+        shell=True
+    )
+    os.chdir("../../..")
+    
+    print("\n3. Construyendo imagenes Docker...")
+    subprocess.run("docker-compose -f docker-compose.micro.yml build", shell=True)
+    
+    print("\nConstruccion completada")
 
-def install_docker_compose_linux():
-    """Instala docker-compose en Linux (simplificado)"""
-    print("Instalando docker-compose...")
+def ejecutar(version):
+    print(f"Ejecutando version: {version}")
+    print("-" * 40)
     
-    # Opción 1: Usar apt (recomendado para Ubuntu/Debian)
-    print("Intentando con apt...")
-    result = subprocess.run("sudo apt update && sudo apt install -y docker-compose", 
-                          shell=True, capture_output=True, text=True)
+    env = os.environ.copy()
+    if version == "v1":
+        env["REVIEWS_APP_VERSION"] = "v1"
+        env["REVIEWS_ENABLE_RATINGS"] = "false"
+        env["TEAM_ID"] = "29"
+    elif version == "v2":
+        env["REVIEWS_APP_VERSION"] = "v2"
+        env["REVIEWS_ENABLE_RATINGS"] = "true"
+        env["REVIEWS_STAR_COLOR"] = "black"
+        env["TEAM_ID"] = "29"
+    elif version == "v3":
+        env["REVIEWS_APP_VERSION"] = "v3"
+        env["REVIEWS_ENABLE_RATINGS"] = "true"
+        env["REVIEWS_STAR_COLOR"] = "red"
+        env["TEAM_ID"] = "29"
     
-    if result.returncode == 0:
-        print("docker-compose instalado con apt")
-        return True
+    print("Deteniendo servicios previos...")
+    subprocess.run("docker-compose -f docker-compose.micro.yml down", shell=True)
     
-    # Opción 2: Descargar binario directamente
-    print("Descargando binario...")
-    commands = [
-        "sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose",
-        "sudo chmod +x /usr/local/bin/docker-compose",
-        "docker-compose --version"
-    ]
+    print("Iniciando servicios...")
+    subprocess.run(f"REVIEWS_VERSION={version} docker-compose -f docker-compose.micro.yml up -d", 
+                   shell=True, env=env)
     
-    for cmd in commands:
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-        if result.returncode != 0:
-            print(f"Error: {result.stderr}")
-            return False
+    time.sleep(3)
     
-    print("docker-compose instalado")
-    return True
+    print("\nContenedores en ejecucion:")
+    subprocess.run("docker-compose -f docker-compose.micro.yml ps", shell=True)
+    
+    print(f"\nURL: http://localhost:9080/productpage")
+    print(f"Version: {version} | Grupo: 29")
 
-def run(cmd):
-    """Ejecuta un comando"""
-    print(f"$ {cmd}")
-    result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-    
-    if result.returncode != 0:
-        print(f"Error: {result.stderr.strip()}")
-    
-    return result
+def detener():
+    print("Deteniendo servicios...")
+    subprocess.run("docker-compose -f docker-compose.micro.yml down", shell=True)
+    print("Servicios detenidos")
 
-def limpiar():
-    """Limpia contenedores"""
-    print("Limpiando contenedores...")
+def debug():
+    print("Modo debug - Mostrando logs")
+    print("Presiona Ctrl+C para salir")
+    subprocess.run("docker-compose -f docker-compose.micro.yml up", shell=True)
+
+def eliminar():
+    print("Eliminando todo...")
+    subprocess.run("docker-compose -f docker-compose.micro.yml down --rmi all", shell=True)
+    print("Eliminacion completada")
+
+def ver_estado():
+    print("Estado actual:")
+    print("-" * 40)
+    
+    print("Imagenes disponibles:")
+    subprocess.run("docker images | grep cdps", shell=True)
+    
+    print("\nContenedores en ejecucion:")
+    subprocess.run("docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'", shell=True)
+    
     if os.path.exists("docker-compose.micro.yml"):
-        run("docker-compose -f docker-compose.micro.yml down")
-    else:
-        print("Archivo docker-compose.micro.yml no encontrado")
+        print("\nServicios docker-compose:")
+        subprocess.run("docker-compose -f docker-compose.micro.yml ps", shell=True)
 
-def build():
-    """Construye todas las imágenes"""
-    print("Construyendo imágenes...")
+def mostrar_menu():
+    print("\n" + "="*50)
+    print("PRACTICA CDPS - GRUPO 29")
+    print("="*50)
+    print("\n1. Construir todo")
+    print("2. Ejecutar version v1")
+    print("3. Ejecutar version v2")
+    print("4. Ejecutar version v3")
+    print("5. Detener servicios")
+    print("6. Debug (ver logs)")
+    print("7. Eliminar todo")
+    print("8. Ver estado")
+    print("0. Salir")
+    print("-"*50)
     
-    # Construir servicios básicos
-    servicios = [
-        ("productpage", "cdps-productpage:g29"),
-        ("details", "cdps-details:g29"),
-        ("ratings", "cdps-ratings:g29"),
-    ]
-    
-    for carpeta, tag in servicios:
-        if os.path.exists(f"./{carpeta}/Dockerfile"):
-            print(f"Construyendo {carpeta}...")
-            run(f"docker build -t {tag} ./{carpeta}")
-    
-    # Construir reviews
-    for v in ["v1", "v2", "v3"]:
-        print(f"Construyendo reviews {v}...")
-        run(f"docker build --build-arg SERVICE_VERSION={v} -t cdps-reviews:{v}-g29 ./reviews")
-
-def probar(version):
-    """Prueba una versión específica"""
-    if not os.path.exists("docker-compose.micro.yml"):
-        print("ERROR: No encuentro docker-compose.micro.yml")
-        return
-    
-    limpiar()
-    print(f"Iniciando versión {version}...")
-    
-    result = run(f"REVIEWS_VERSION={version} docker-compose -f docker-compose.micro.yml up -d")
-    
-    if result.returncode == 0:
-        time.sleep(3)
-        print("Contenedores corriendo:")
-        run("docker ps --format 'table {{.Names}}\t{{.Status}}' | grep cdps")
-        print(f"\nURL: http://localhost:9080/productpage (versión {version})")
-        input("\nPresiona ENTER para continuar...")
+    return input("Seleccion (0-8): ").strip()
 
 def main():
-    """Función principal"""
-    print("Script de prueba de microservicios - Grupo 29")
-    print("=" * 50)
-    
-    # Verificar docker-compose
-    if not check_docker_compose():
-        print("\nDocker-compose no está instalado.")
-        respuesta = input("¿Quieres instalarlo automáticamente? (s/n): ").lower()
+    if len(sys.argv) > 1:
+        cmd = sys.argv[1].lower()
         
-        if respuesta == 's':
-            # Detectar sistema
-            import platform
-            if platform.system().lower() == "linux":
-                if install_docker_compose_linux():
-                    print("docker-compose instalado correctamente")
-                else:
-                    print("No se pudo instalar docker-compose")
-                    print("Instala manualmente: sudo apt install docker-compose")
-                    return
+        if cmd == "build":
+            construir()
+        elif cmd == "run":
+            version = sys.argv[2] if len(sys.argv) > 2 else "v1"
+            if version not in ["v1", "v2", "v3"]:
+                print("Version no valida. Usar: v1, v2 o v3")
+                sys.exit(1)
+            ejecutar(version)
+        elif cmd == "stop":
+            detener()
+        elif cmd == "debug":
+            debug()
+        elif cmd == "delete":
+            eliminar()
+        else:
+            print("Comando no valido")
+            print("Uso: build, run [v1|v2|v3], stop, debug, delete")
+            sys.exit(1)
+    else:
+        while True:
+            opcion = mostrar_menu()
+            
+            if opcion == "1":
+                construir()
+            elif opcion == "2":
+                ejecutar("v1")
+            elif opcion == "3":
+                ejecutar("v2")
+            elif opcion == "4":
+                ejecutar("v3")
+            elif opcion == "5":
+                detener()
+            elif opcion == "6":
+                debug()
+            elif opcion == "7":
+                eliminar()
+            elif opcion == "8":
+                ver_estado()
+            elif opcion == "0":
+                print("Saliendo...")
+                break
             else:
-                print("Para Windows/Mac: instala Docker Desktop")
-                return
-        else:
-            print("Instala docker-compose manualmente y vuelve a ejecutar")
-            return
-    
-    # Menú principal
-    while True:
-        print("\nMENU:")
-        print("1. Construir todo")
-        print("2. Probar v1, v2, v3")
-        print("3. Limpiar")
-        print("0. Salir")
-        
-        op = input("\nOpción: ").strip()
-        
-        if op == "1":
-            build()
-            print("Construcción completada")
+                print("Opcion no valida")
             
-        elif op == "2":
-            for v in ["v1", "v2", "v3"]:
-                probar(v)
-            print("Pruebas completadas")
-            
-        elif op == "3":
-            limpiar()
-            print("Limpiado")
-            
-        elif op == "0":
-            limpiar()
-            print("Saliendo...")
-            break
-            
-        else:
-            print("Opción no válida")
+            if opcion != "0":
+                input("\nPresiona ENTER para continuar...")
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\nPrograma interrumpido")
+        sys.exit(0)
