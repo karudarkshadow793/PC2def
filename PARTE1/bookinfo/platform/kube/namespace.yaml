@@ -1,0 +1,5 @@
+#Crear un namespace con el nombre `cdps-<TEAM_ID>` en donde se deben desplegar cada uno de los microservicios de la aplicación.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cdps-29

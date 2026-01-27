@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: details-deployment
+  namespace: cdps-29
+  labels:
+    app: details
+    version: v1
+spec:
+  replicas: 4                  # REQUERIDO: factor replicación 4
+  selector:
+    matchLabels:
+      app: details
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: details
+        version: v1
+    spec:
+      containers:
+      - name: details
+        image: cdps-details:g29  # TU IMAGEN
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 7070
+        env:
+        - name: ENABLE_EXTERNAL_BOOK_SERVICE
+          value: "true"
+        securityContext:
+          runAsUser: 1000

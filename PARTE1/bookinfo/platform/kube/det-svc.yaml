@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: details-service        # NOMBRE DIFERENTE AL DEPLOYMENT
+  namespace: cdps-29
+  labels:
+    app: details
+    service: details
+spec:
+  ports:
+  - port: 7070
+    name: http
+  selector:
+    app: details

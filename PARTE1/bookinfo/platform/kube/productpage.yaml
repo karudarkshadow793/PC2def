@@ -1,0 +1,56 @@
+##################################################################################################
+# ProductPage 
+##################################################################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: productpage
+  labels:
+    app: productpage
+spec:
+  ports:
+  - port: 8080 #Puerto del servicio en Kubernetes http://mi-servicio:8080
+    targetPort: 5060 #Puerto del contenedor donde se reciben las peticiones
+    name: http
+  selector:
+    app: productpage
+  type: LoadBalancer  #Para que sea accesible mediante IP pública
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: productpage
+  labels:
+    app: productpage
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: productpage
+  template:
+    metadata:
+      labels:
+        app: productpage
+    spec:
+      containers:
+      - name: productpage
+        image: danielmartin333/product-page-g02  
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: TEAM_ID
+          value: "29"
+        ports:
+        - containerPort: 5060  #Puerto del contenedor donde se reciben las peticiones
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: wlp-output
+          mountPath: /opt/ibm/wlp/output
+        securityContext:
+          runAsUser: 1000
+      volumes:
+      - name: wlp-output
+        emptyDir: {}
+      - name: tmp
+        emptyDir: {}
+---

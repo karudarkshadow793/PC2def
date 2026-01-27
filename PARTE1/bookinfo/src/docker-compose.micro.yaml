@@ -1,0 +1,40 @@
+version: '3.8'
+
+networks:
+  cdps-net:
+    driver: bridge
+
+services:
+  productpage:
+    image: cdps-productpage:g29
+    container_name: productpage_cdps_29
+    ports: ["9080:9080"]
+    environment:
+      - DETAILS_HOSTNAME=details-service
+      - RATINGS_HOSTNAME=ratings-service
+      - REVIEWS_HOSTNAME=reviews-service
+    networks: [cdps-net]
+    depends_on: [details, reviews, ratings]
+
+  details:
+    image: cdps-details:g29
+    container_name: details_cdps_29
+    environment:
+      - ENABLE_EXTERNAL_BOOK_SERVICE=true
+    networks: [cdps-net]
+
+  ratings:
+    image: cdps-ratings:g29
+    container_name: ratings_cdps_29
+    environment:
+      - APP_VERSION=v1
+    networks: [cdps-net]
+
+  reviews:
+    image: cdps-reviews:${REVIEWS_VERSION:-v1}-g29
+    container_name: reviews_cdps_29
+    environment:
+      - SERVICE_VERSION=${REVIEWS_VERSION:-v1}
+      - ENABLE_RATINGS=true
+      - LOG_DIR=/tmp/logs
+    networks: [cdps-net]
