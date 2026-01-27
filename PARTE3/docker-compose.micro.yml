@@ -6,7 +6,7 @@ services:
   productpage:
     build:
       context: .
-      dockerfile: Dockerfile.productpage
+      dockerfile: dockerfile.productpage
     image: cdps-productpage:g29
     container_name: productpage_cdps_29
     ports:
@@ -20,7 +20,7 @@ services:
   details:
     build:
       context: .
-      dockerfile: Dockerfile.details
+      dockerfile: dockerfile.details
     image: cdps-details:g29
     container_name: details_cdps_29
     ports:
@@ -36,7 +36,7 @@ services:
   ratings:
     build:
       context: .
-      dockerfile: Dockerfile.ratings
+      dockerfile: dockerfile.ratings
     image: cdps-ratings:g29
     container_name: ratings_cdps_29
     ports:
@@ -65,3 +65,4 @@ services:
       - /opt/microservices/node_modules
     networks:
       - cdps-net
+
