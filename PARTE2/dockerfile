@@ -1,0 +1,21 @@
+#- **ProductPage:** para este contenedor se debe usar la imagen base de python3.9-slim,
+#instalar las librerías definidas en el fichero requirements.txt 
+# ejecutar el archivo productpage.py.
+
+FROM python:3.9-slim
+
+WORKDIR /app
+COPY bookinfo/src/productpage/requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY bookinfo/src/productpage/ ./
+
+ENV SERVICES_DOMAIN=""
+ENV DETAILS_HOSTNAME="details"
+ENV RATINGS_HOSTNAME="ratings" 
+ENV REVIEWS_HOSTNAME="reviews"
+ENV TEAM_ID="29"
+EXPOSE 8080
+
+CMD ["python3", "productpage_monolith.py", "8080"]
+
