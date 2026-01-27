@@ -17,11 +17,12 @@ if cmd == "build":
     subprocess.run("sudo systemctl restart docker || true", shell=True)
     subprocess.run("sudo docker build -t cdps-productpage:g29 .", shell=True)
 elif cmd == "run":
-    subprocess.run("sudo docker run --name productpage_cdps_29 -p 9095:8080 -e TEAM_ID=29 -e APP_OWNER=Perez-et-al -d cdps-productpage:g29", shell=True)
+    subprocess.run("sudo docker run --name productpage_cdps_29 -p 9095:8080 -e TEAM_ID=29 -e APP_OWNER=Ingelmo-et-al -d cdps-productpage:g29", shell=True)
 elif cmd == "stop":
     subprocess.run("sudo docker stop productpage_cdps_29", shell=True)
 elif cmd == "delete":
     subprocess.run("sudo docker rm -f productpage_cdps_29", shell=True)
 else:
     print("Invalid command. Use: build, run, stop, or delete")
+
     sys.exit(1)
