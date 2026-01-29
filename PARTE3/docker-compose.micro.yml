@@ -16,7 +16,6 @@ services:
     networks:
       - cdps-net
 
-
   details:
     build:
       context: .
@@ -31,7 +30,6 @@ services:
       - ./bookinfo/src/details:/opt/microservices
     networks:
       - cdps-net
-
 
   ratings:
     build:
@@ -49,7 +47,6 @@ services:
     networks:
       - cdps-net
 
-
   reviews:
     image: cdps-reviews:g29
     container_name: reviews_cdps_29
@@ -65,4 +62,3 @@ services:
       - /opt/microservices/node_modules
     networks:
       - cdps-net
-
