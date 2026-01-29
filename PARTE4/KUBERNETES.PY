@@ -2,12 +2,12 @@ import subprocess
 import os
 import sys
 
-DOCKER_USER = "karudarkshadow793"
+DOCKER_USER = "Ferinnnn42"
 TAG = "latest"
 TEAM_ID = "29"
 NAMESPACE = f"cdps-{TEAM_ID}"
 PROJECT_ID = "perfect-obelisk-480209-b2"
-ZONE = "europe-southwest1-b"
+ZONE = "europe-west1-b"
 CLUSTER_NAME = "bookinfo-cluster"
 NUM_NODES = 3
 BASE_PATH = os.path.dirname(os.path.abspath(__file__))
